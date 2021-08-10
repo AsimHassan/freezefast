@@ -124,7 +124,7 @@ int junctionStateMachine(){
             break;
         case ROVER_CROSS_INTER:
             if (IR_Sensor == HIGH){
-                sendMessage("STOP");
+                sendMessage("SLOWDOWN");
                 JUNCTION_STATE = ROVER_CROSS2;
                 rover_cross2_timer_0 = millis();
             }
@@ -132,11 +132,14 @@ int junctionStateMachine(){
         case ROVER_CROSS2:
             if(millis() - rover_cross2_timer_0 > 500){
                 if (IR_Sensor ==HIGH){
+                    sendMessage("STOP");
                     JUNCTION_STATE = ROVER_HERE;
                 }
             }
             break;
         case ROVER_HERE:
+            if(millis() - rover_cross2_timer_0 > 500 && IR_Sensor == HIGH)
+            {
             if(Message.compareTo("ROTATE:STRAIGHT") == 0){
                 destination = STRAIGHT;
                 JUNCTION_STATE = ROTATE;
@@ -144,6 +147,10 @@ int junctionStateMachine(){
             if (Message.compareTo("ROTATE:CROSS") == 0){
                 destination = CROSS;
                 JUNCTION_STATE = ROTATE;
+            }
+            }
+            if(millis()-rover_cross2_timer_0 > 1000 && IR_Sensor == LOW){
+                JUNCTION_STATE = ERROR_ROTATION;
             }
             break;
         case ROTATE:
