@@ -149,9 +149,9 @@ int junctionStateMachine(){
                 JUNCTION_STATE = ROTATE;
             }
             }
-            if(millis()-rover_cross2_timer_0 > 1000 && IR_Sensor == LOW){
-                JUNCTION_STATE = ERROR_ROTATION;
-            }
+            // if(millis()-rover_cross2_timer_0 > 1000 && IR_Sensor == LOW){
+            //     JUNCTION_STATE = ERROR_ROTATION;
+            // }
             break;
         case ROTATE:
             if(rotating_state_machine(destination) == DONE){
