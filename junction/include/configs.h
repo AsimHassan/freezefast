@@ -10,12 +10,12 @@
 #define PORT 1234
 
 /***************Pin Defs*********************/
-#define TURN_CW_PIN 14 
-#define TURN_CCW_PIN 15
-#define BUZZER_PIN 16
-#define SENSOR_A1_PIN 17
-#define SENSOR_A2_PIN 18 
-#define IR_SENSOR_PIN 19
+#define TURN_CW_PIN 16 
+#define TURN_CCW_PIN 17
+#define BUZZER_PIN 18
+#define SENSOR_A1_PIN 18
+#define SENSOR_A2_PIN 19 
+#define IR_SENSOR_PIN 21
 
 /************************************************/
 #define TIME_BUZZER 4000
