@@ -311,7 +311,7 @@ switch (ROTATING_STATE){
         break;
 
     case SEND_MESSAGE:
-        sendMessage("Rotation done");
+        sendMessage("ROTATION|DONE");
         ROTATING_STATE = DONE;
         break;
 
