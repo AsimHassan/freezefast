@@ -137,11 +137,11 @@ int junctionStateMachine(){
             }
             break;
         case ROVER_HERE:
-            if(Message.compareTo("ROTATE:STRAIGHT") == 0){
+            if(Message.compareTo("ROTATE|STRAIGHT") == 0){
                 destination = STRAIGHT;
                 JUNCTION_STATE = ROTATE;
             }
-            if (Message.compareTo("ROTATE:CROSS") == 0){
+            if (Message.compareTo("ROTATE|CROSS") == 0){
                 destination = CROSS;
                 JUNCTION_STATE = ROTATE;
             }
