@@ -110,6 +110,7 @@ int station_state_machine(){
         current_state_station = EMERGENCY;
         }
 
+
     switch (current_state_station){
         case RESET:{
             digitalWrite(RED_LED_PIN,LOW);

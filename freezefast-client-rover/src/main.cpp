@@ -14,6 +14,7 @@
 #define FORWARD 8
 #define REVERSE 9
 
+
 #define WIFI_DISCONNECTED 0
 #define WIFI_CONNECTED 1
 #define WIFI_RECONNECTING 2
@@ -207,6 +208,12 @@ int state_machine_rover(){
         digitalWrite(SLOWDOWN_PIN,LOW);
         break;
 
+    case EMERGENCY_STOP:
+        digitalWrite(BUZZER_PIN,HIGH);
+        digitalWrite(FORWARD_PIN,LOW);
+        digitalWrite(REVERSE_PIN,LOW);
+        digitalWrite(SLOWDOWN_PIN,LOW);
+        break;
 
 
     default:
