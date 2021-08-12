@@ -1,5 +1,5 @@
 import queue
-from enum import Enum, auto
+from enum import Enum, EnumMeta, auto
 positions = {
     "1":1,
     "2":2,
@@ -115,25 +115,20 @@ class Freezefast:
 
     def parse_station(self,msg:list):
         sendbackaddr = "|".join(msg[:2])
-        #TODO Parse CALL
         if 'CALL' in msg:
             return self._parse_station_call(msg,sendbackaddr) # return list of tuple
-        #TODO Parse GO
         if 'GO' in msg:
             return self._parse_station_go(msg,sendbackaddr) # return list of tuple
-        #TODO Parse ROVERCROSS
         if 'ROVERCROSS' in msg:
             return self._parse_station_rovercross(msg,sendbackaddr)
-        #TODO Parse SLOWDOWN
         if 'SLOWDOWN' in msg:
             return self._parse_station_slowdown(msg,sendbackaddr)
-        #TODO Parse STOP
         if 'STOP' in msg:
             return self._parse_station_stop(msg,sendbackaddr) 
-        #TODO Emergency STOP
         if 'EMERGENCY' in msg:
             return self._parse_station_emergency(msg,sendbackaddr)
         #TODO RESTART
+
 
 
     def _parse_station_call(self, msg,sendbackaddr):
@@ -223,9 +218,9 @@ class Freezefast:
                 self.junction_position = 'STRAIGHT'
 
             if int(self.rover_destination) == 5:
-                if self.rover_destination == 5.1:
+                if self.rover_destination == positions["STORE"]:
                     to_rover = (Msgpriority.GO,self.ROVER,"FORWARD")
-                elif self.rover_destination == 5.2:
+                elif self.rover_destination ==positions["COLDROOM"]:
                     to_rover = (Msgpriority.GO,self.ROVER,"REVERSE")
             else:
                 direction = get_direction(5,self.rover_destination)
@@ -251,9 +246,35 @@ class Freezefast:
             msg_priority = Msgpriority.ACK
             return [(msg_priority,self.HMI,msg_call_ack)]
         #TODO GO
+        if 'GO' in msg:
+            destination = msg[-1]
+            if self.rover_position == positions["STORE"]:
+                direction = "REVERSE"
+            else:
+                direction = "FORWARD"
+            
+            self.rover_destination  = positions[destination]
+            return[(Msgpriority.GO,self.ROVER,direction),(Msgpriority.ACK,self.HMI,'GO|ACK')]
+            
         #TODO E_STOP
+        if 'EMERGENCY' in msg:
+            to_rover  = (Msgpriority.STOP,self.ROVER,'EMERGENCY')
+            to_HMI = (Msgpriority.STOP,self.HMI,'EMERGENCY|ACK')
+            return [to_rover,to_HMI]
+
         #TODO RESTART
+        if 'RESTART' in msg:
+            direction = get_direction(self.rover_position,self.rover_destination)
+            to_rover = (Msgpriority.GO,self.ROVER,direction)
+            to_HMI = (Msgpriority.ACK,self.HMI,'RESTART|ACK')
+
         #TODO UPDATES
+
+
+    def HMI_update(self):
+        data = f"{self.rover_destination}|{self.rover_position}|{RoverStates(self.rover_state).name}"
+        to_HMI = (Msgpriority.ACK,self.HMI,data)
+        return [to_HMI]
 
 
 
