@@ -84,16 +84,20 @@ class Freezefast:
         self.junction_position = 'STRAIGHT'
 
     def handle_call_queue(self):
-        if self.rover_state == RoverStates.RESTING.value:
-            if not self.callq.empty():
-                destination = self.callq.get()
-                if int(destination) != positions["JUNCTION"]:
-                    direction = get_direction(self.rover_position,destination)
-                    return [(Msgpriority.GO,self.ROVER,direction)]
-                else:
-                    #TODO Junction logicj
-                    pass
-                
+        if (
+            self.rover_state == RoverStates.RESTING.value
+            and not self.callq.empty()
+        ):
+            destination = self.callq.get()
+            if int(destination) != positions["JUNCTION"]:
+                direction = get_direction(self.rover_position,destination)
+                self.rover_destination = destination
+                return [(Msgpriority.GO,self.ROVER,direction)]
+            if destination == positions["STORE"]:
+                direction = get_direction(self.rover_position,positions["JUNCTION"])
+                self.rover_destination = destination
+                return [(Msgpriority.GO,self.ROVER,direction)]
+
         return []
 
 
@@ -102,26 +106,21 @@ class Freezefast:
         list_returns = [] # store list of tuples with (priority,destination,data)
         if "STATION" in splitmsg:
             return self.parse_station(splitmsg)  # return list of tuple
-
         if "ROVER" in splitmsg:
-            (destination,message) = self.parse_rover(splitmsg[2:]) 
+            (destination,message) = self.parse_rover(splitmsg) 
         if "JUNCTION" in splitmsg:
-            (destination,message) = self.parse_junction(splitmsg[2:]) 
+            (destination,message) = self.parse_junction(splitmsg) 
         if "HMI" in splitmsg:
-            (destination,message) = self.parse_hmi(splitmsg[2:]) 
+            (destination,message) = self.parse_hmi(splitmsg) 
 
     def parse_station(self,msg:list):
         sendbackaddr = "|".join(msg[:2])
         #TODO Parse CALL
         if 'CALL' in msg:
             return self._parse_station_call(msg,sendbackaddr) # return list of tuple
-
-
         #TODO Parse GO
         if 'GO' in msg:
             return self._parse_station_go(msg,sendbackaddr) # return list of tuple
-
-
         #TODO Parse ROVERCROSS
         if 'ROVERCROSS' in msg:
             return self._parse_station_rovercross(msg,sendbackaddr)
@@ -132,6 +131,8 @@ class Freezefast:
         if 'STOP' in msg:
             return self._parse_station_stop(msg,sendbackaddr) 
         #TODO Emergency STOP
+        if 'EMERGENCY' in msg:
+            return self._parse_station_emergency(msg,sendbackaddr)
         #TODO RESTART
 
 
@@ -173,6 +174,12 @@ class Freezefast:
             to_station = (Msgpriority.ACK,sendbackaddr,"CROSS|NO")
             return [to_station]
 
+    def _parse_station_emergency(self,msg,sendbackaddr):
+        to_rover = (Msgpriority.STOP,self.ROVER,"EMERGENCY")
+        to_HMI = (Msgpriority.STOP,self.HMI,"EMERGENCY-STOP")
+        to_station = (Msgpriority.STOP,sendbackaddr,"EMEGENCY-ACK")
+        return [to_rover,to_station,to_HMI]
+
 
 
     
@@ -204,12 +211,10 @@ class Freezefast:
         
         #TODO SLOWDOWN
         if 'SLOWDOWN' in msg:
-            to_rover = (Msgpriority.SLOWDOWN, self.ROVER,"SLOWDOWN")
-            return [to_rover]
+            return self._parse_junction_slowdown()
         #TODO STOP
         if 'STOP' in msg:
-            to_rover = (Msgpriority.STOP,self.ROVER,"STOP")
-            return [to_rover]
+            return self._parse_junction_stop()
         #TODO ROTATION|DONE
         if 'DONE' in msg:
             if self.junction_position == 'STRAIGHT':
@@ -228,7 +233,14 @@ class Freezefast:
 
             return [to_rover]    
                 
+    def _parse_junction_slowdown(self):
+        return [(Msgpriority.SLOWDOWN, self.ROVER,"SLOWDOWN")]
 
+    def _parse_junction_stop(self):
+        return [(Msgpriority.STOP,self.ROVER,"STOP")]
+
+    def _parse_junction_done(self,msg):
+        pass
     
     def parse_hmi(self,msg:list):
         #TODO CALL
