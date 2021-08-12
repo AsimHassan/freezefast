@@ -12,6 +12,12 @@ positions = {
     "7":7,
     "8":8
 }
+class Msgpriority:
+    STOP = 2
+    SLOWDOWN = 3
+    CALL = 5
+    GO = 5
+    ACK = 8
 
 class RoverStates():
     RESET = 0
@@ -50,6 +56,9 @@ class StationStates():
     FORWARD = 8
     REVERSE = 9
 
+
+
+
 class Freezefast:
 
     def __init__(self) -> None:
@@ -67,18 +76,89 @@ class Freezefast:
 
     def parse_message(self,msg:str):
         splitmsg = msg.split('|')
-
+        list_returns = [] # store list of tuples with (priority,destination,data)
         if "STATION" in splitmsg:
-            (destination,message) = self.parse_station(splitmsg[2:]) 
+            return self.parse_station(splitmsg)  # return list of tuple
 
         if "ROVER" in splitmsg:
-            pass
+            (destination,message) = self.parse_rover(splitmsg[2:]) 
         if "JUNCTION" in splitmsg:
-            pass
+            (destination,message) = self.parse_junction(splitmsg[2:]) 
         if "HMI" in splitmsg:
-            pass
-        if "ROVER" in splitmsg:
-            pass
+            (destination,message) = self.parse_hmi(splitmsg[2:]) 
 
     def parse_station(self,msg:list):
+        #TODO Parse CALL
+        if 'CALL' in msg:
+            return self._parse_station_call(msg) # return list of tuple
+
+
+        #TODO Parse GO
+        if 'GO' in msg:
+            return self._parse_station_go(msg) # return list of tuple
+
+
+        #TODO Parse ROVERCROSS
+        #TODO Parse SLOWDOWN
+        if 'SLOWDOWN' in msg:
+            return self._parse_station_slowdown(msg)
+        #TODO Parse STOP
+        if 'STOP' in msg:
+            return self._parse_station_stop(msg) 
+        #TODO Emergency STOP
+        #TODO RESTART
+
+
+    def _parse_station_call(self, msg):
+        called_station = msg[1]
+        self.callq.put(positions[called_station])
+        msg_destination_station = "|".join(msg[:2])
+        msg_call_ack = 'CALL|ACK'
+        msg_priority = Msgpriority.ACK
+        return [(msg_priority,msg_destination_station,msg_call_ack)]
+    
+    def _parse_station_go(self, msg):
+        msg_destination_station = "|".join(msg[:2])
+        msg_go_ack = 'GO|ACK'
+        msg_priority = Msgpriority.ACK
+        return [(4,self.ROVER,'FORWARD'),(msg_priority,msg_destination_station,msg_go_ack)]
+    
+    def _parse_station_slowdown(self,msg):
+        to_station = (Msgpriority.ACK,"|".join(msg[:2],'SLOWDOWN|ACK'))
+        to_rover = (Msgpriority.SLOWDOWN,self.ROVER,'SLOWDOWN')
+        return[to_rover,to_station]
+         
+    def _parse_station_stop(self,msg):
+        msg_destination_station = "|".join(msg[:2])
+        msg_ack = 'STOP|ACK'
+        msg_priority = Msgpriority.ACK
+        to_station = (msg_priority,msg_destination_station,msg_ack)
+        to_rover = (Msgpriority.STOP,self.ROVER,'STOP')
+        return[to_rover,to_station]
+
+
+
+    
+    def parse_rover(self,msg:list):
+        #TODO ACKS
+        #TODO Updates
         pass
+    def parse_junction(self,msg:list):
+        #TODO UPDATES
+        #TODO SLOWDOWN
+        #TODO STOP
+        #TODO ROTATION|DONE
+        pass
+    
+    def parse_hmi(self,msg:list):
+        #TODO CALL
+        #TODO GO
+        #TODO E_STOP
+        #TODO RESTART
+        #TODO UPDATES
+
+        pass
+
+
+
+

@@ -1,5 +1,6 @@
 import asyncio
 from asyncio import exceptions
+from freezefast import Freezefast
 import threading
 
 clientlist = {}
@@ -9,6 +10,7 @@ stationlist = {}
 
 msgIn_q = asyncio.Queue()
 msgOut_q = asyncio.Queue()
+freeze_obj = Freezefast()
 
 async def connection(reader:asyncio.StreamReader,writer:asyncio.StreamWriter):
     print("new conection")
@@ -35,17 +37,16 @@ async def connection(reader:asyncio.StreamReader,writer:asyncio.StreamWriter):
 
 async def process():
     print("process thread ready")
+
     while True:
+        msg_list = []
         if msgIn_q.empty():
             await asyncio.sleep(0.1)
             continue
         msg = await msgIn_q.get()
-
-        msg = msg.split("|")
-        destination = '|'.join(msg[0:2])
-        payload = '|'.join(msg[2:])
-        msgout = (destination,payload)
-        await msgOut_q.put(msgout)
+        msg_list = freeze_obj.parse_message(msg).copy()
+        for element in msg_list:
+            await msgOut_q.put(element)
         await asyncio.sleep(0.1)
 
 
@@ -56,10 +57,12 @@ async def sendMessages():
         if msgOut_q.empty():
             await asyncio.sleep(0.1)
             continue
-        msg = await msgOut_q.get()
+        msg = await msgOut_q.get() # msg is a (priority,destination,data)
+
         try:
-            clientlist[msg[0]][1].write(msg[1j].encode())
-            await clientlist[msg[0]][1].drain()
+            print(msg[1])
+            clientlist[msg[1]][1].write(msg[2].encode())
+            await clientlist[msg[1]][1].drain()
         except KeyError:
             print("the client is disconnected")
         await asyncio.sleep(0.1)
