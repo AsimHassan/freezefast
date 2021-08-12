@@ -45,8 +45,9 @@ async def process():
             continue
         msg = await msgIn_q.get()
         msg_list = freeze_obj.parse_message(msg).copy()
-        for element in msg_list:
-            await msgOut_q.put(element)
+        if msg_list:
+            for element in msg_list:
+                await msgOut_q.put(element)
         await asyncio.sleep(0.1)
 
 
