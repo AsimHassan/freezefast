@@ -140,6 +140,11 @@ int state_machine_rover(){
         sendMessage("SLOWDOWN|ACK");
         current_rover_state = SLOWDOWN ;
     }
+    if (msgIn.compareTo("RESTING")==0){
+        Serial.println("Slowdown");
+        sendMessage("RESTING|ACK");
+        current_rover_state = RESTING ;
+    }
 
     if (msgIn.compareTo("STOP")==0){
         Serial.println("STOP");
@@ -194,6 +199,13 @@ int state_machine_rover(){
             current_rover_state = previous_rover_state;
 
         }
+
+    case RESTING:
+        digitalWrite(BUZZER_PIN,LOW);
+        digitalWrite(FORWARD_PIN,LOW);
+        digitalWrite(REVERSE_PIN,LOW);
+        digitalWrite(SLOWDOWN_PIN,LOW);
+        break;
 
 
 
