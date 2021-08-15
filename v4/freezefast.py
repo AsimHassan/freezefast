@@ -10,7 +10,10 @@ positions = {
     "JUNCTION":5,
     "6":6,
     "7":7,
-    "8":8
+    "8":8,
+    "9":9,
+    "10":10,
+    "11":11
 }
 class Msgpriority:
     STOP = 2
@@ -58,9 +61,9 @@ class StationStates():
     REVERSE = 9
 
 def get_direction(position, destination):
-    if destination - position > 0:
+    if int(destination) - position > 0:
         return "FORWARD"
-    elif destination - position < 0:
+    elif int(destination) - position < 0:
         return "REVERSE"
     else:
         return "STOP"
@@ -127,7 +130,6 @@ class Freezefast:
             return self._parse_station_stop(msg,sendbackaddr) 
         if 'EMERGENCY' in msg:
             return self._parse_station_emergency(msg,sendbackaddr)
-        #TODO RESTART
 
 
 
@@ -179,10 +181,8 @@ class Freezefast:
 
     
     def parse_rover(self,msg:list):
-        #TODO ACKS
         if 'ACK' in msg:
             print(" ".join(msg))
-        #TODO Updates
         if 'STATE' in msg[-1]:
             [_,state] = msg[-1].split(':')
             state = int(state)
@@ -191,7 +191,6 @@ class Freezefast:
 
 
     def parse_junction(self,msg:list):
-        #TODO UPDATES
         state = int(msg[-1])
         self.junction_state =  JunctionStates(state).value
         print("JUNCTION: "+ JunctionStates(state).name)
@@ -204,13 +203,10 @@ class Freezefast:
             return [to_junction]
 
         
-        #TODO SLOWDOWN
         if 'SLOWDOWN' in msg:
             return self._parse_junction_slowdown()
-        #TODO STOP
         if 'STOP' in msg:
             return self._parse_junction_stop()
-        #TODO ROTATION|DONE
         if 'DONE' in msg:
             if self.junction_position == 'STRAIGHT':
                 self.junction_position = "CROSS"
@@ -238,14 +234,12 @@ class Freezefast:
         pass
     
     def parse_hmi(self,msg:list):
-        #TODO CALL
         if 'CALL' in msg:
             called_station = msg[0]
             self.callq.put(positions[called_station])
             msg_call_ack = 'CALL|ACK'
             msg_priority = Msgpriority.ACK
             return [(msg_priority,self.HMI,msg_call_ack)]
-        #TODO GO
         if 'GO' in msg:
             destination = msg[-1]
             if self.rover_position == positions["STORE"]:
@@ -256,19 +250,16 @@ class Freezefast:
             self.rover_destination  = positions[destination]
             return[(Msgpriority.GO,self.ROVER,direction),(Msgpriority.ACK,self.HMI,'GO|ACK')]
             
-        #TODO E_STOP
         if 'EMERGENCY' in msg:
             to_rover  = (Msgpriority.STOP,self.ROVER,'EMERGENCY')
             to_HMI = (Msgpriority.STOP,self.HMI,'EMERGENCY|ACK')
             return [to_rover,to_HMI]
 
-        #TODO RESTART
         if 'RESTART' in msg:
             direction = get_direction(self.rover_position,self.rover_destination)
             to_rover = (Msgpriority.GO,self.ROVER,direction)
             to_HMI = (Msgpriority.ACK,self.HMI,'RESTART|ACK')
 
-        #TODO UPDATES
 
 
     def HMI_update(self):

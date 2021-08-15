@@ -41,6 +41,8 @@ async def process():
     while True:
         msg_list = []
         if msgIn_q.empty():
+            freeze_obj.handle_call_queue()
+            freeze_obj.HMI_update()
             await asyncio.sleep(0.1)
             continue
         msg = await msgIn_q.get()
