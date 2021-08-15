@@ -2,6 +2,7 @@ import asyncio
 from asyncio import exceptions
 from freezefast import Freezefast
 import threading
+import time
 
 clientlist = {}
 
@@ -37,16 +38,28 @@ async def connection(reader:asyncio.StreamReader,writer:asyncio.StreamWriter):
 
 async def process():
     print("process thread ready")
-
+    last_update = time.time()
     while True:
         msg_list = []
+        to_rover = []
+        to_hmi = []
         if msgIn_q.empty():
-            freeze_obj.handle_call_queue()
-            freeze_obj.HMI_update()
+            to_rover = freeze_obj.handle_call_queue()
+            if time.time() - last_update > 2:
+                to_hmi = freeze_obj.HMI_update()
+                if to_hmi:
+                    await msgOut_q.put(to_hmi[0])
+                last_update = time.time()
+            # print("to _HMI : ",to_hmi)
+            # print("to_rover: ",to_rover)
+            if len(to_rover) >0 :
+                await msgOut_q.put(to_rover[0])
+            if to_hmi:
+                await msgOut_q.put(to_hmi[0])
             await asyncio.sleep(0.1)
             continue
         msg = await msgIn_q.get()
-        msg_list = freeze_obj.parse_message(msg).copy()
+        msg_list = freeze_obj.parse_message(msg)
         if msg_list:
             for element in msg_list:
                 await msgOut_q.put(element)
@@ -61,9 +74,8 @@ async def sendMessages():
             await asyncio.sleep(0.1)
             continue
         msg = await msgOut_q.get() # msg is a (priority,destination,data)
-
         try:
-            print(msg[1])
+            print(msg)
             clientlist[msg[1]][1].write(msg[2].encode())
             await clientlist[msg[1]][1].drain()
         except KeyError:
