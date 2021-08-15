@@ -91,17 +91,19 @@ class Freezefast:
             self.rover_state == RoverStates.RESTING.value
             and not self.callq.empty()
         ):
+            print("handling call queue")
             destination = self.callq.get()
             if int(destination) != positions["JUNCTION"]:
                 direction = get_direction(self.rover_position,destination)
                 self.rover_destination = destination
+                self.rover_state = RoverStates.BLOCKED_TILL_UPDATE.value
                 return [(Msgpriority.GO,self.ROVER,direction)]
             if destination == positions["STORE"]:
                 direction = get_direction(self.rover_position,positions["JUNCTION"])
                 self.rover_destination = destination
                 return [(Msgpriority.GO,self.ROVER,direction)]
-
-        return []
+        else:
+            return []
 
 
     def parse_message(self,msg:str):
@@ -110,11 +112,11 @@ class Freezefast:
         if "STATION" in splitmsg:
             return self.parse_station(splitmsg)  # return list of tuple
         if "ROVER" in splitmsg:
-            (destination,message) = self.parse_rover(splitmsg) 
+            return self.parse_rover(splitmsg) 
         if "JUNCTION" in splitmsg:
-            (destination,message) = self.parse_junction(splitmsg) 
+            return  self.parse_junction(splitmsg) 
         if "HMI" in splitmsg:
-            (destination,message) = self.parse_hmi(splitmsg) 
+            return self.parse_hmi(splitmsg) 
 
     def parse_station(self,msg:list):
         sendbackaddr = "|".join(msg[:2])
