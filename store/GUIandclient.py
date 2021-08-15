@@ -5,16 +5,17 @@ from tkinter.constants import FALSE
 import PySimpleGUI as sg
 from PySimpleGUI.PySimpleGUI import button_color_to_tuple
 
+
 sg.theme('BluePurple')
-_size1 = (31,7)
-_size = (22,7)
+_size1 = (31,6) # (width,height)
+_size = (22,6)
 layout = [[sg.Button('CALL',size=_size1,key='-CALL-',pad=(5,5)),sg.Button('E-STOP',size=_size1,key = '-ESTOP-'),sg.Button('Restart',size=_size1,key='-RESTART-')],
           [sg.Button('1',size=_size),sg.Button('2',size=_size),sg.Button('3',size=_size),sg.Button('4',size=_size)],
           [sg.Button('5',size=_size),sg.Button('6',size=_size),sg.Button('7',size=_size),sg.Button('8',size=_size),],
           [sg.Button('9',size=_size),sg.Button('10',size=_size),sg.Button('11',size=_size),sg.Button('12',size=_size)],
           [sg.Text('I should be updated when a messge comes in',key='-text_bottom-')]]
 
-window = sg.Window('HMI test', layout = layout,location = (800,100),size=(800,480),no_titlebar=True,element_justification='center',keep_on_top=False)
+window = sg.Window('HMI test', layout = layout,location = (0,0),size=(800,480),no_titlebar=True,element_justification='center',keep_on_top=False)
 
 EMERGENCY_STATE = False
 
