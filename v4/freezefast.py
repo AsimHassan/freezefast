@@ -87,23 +87,19 @@ class Freezefast:
         self.junction_position = 'STRAIGHT'
 
     def handle_call_queue(self):
-        if (
-            self.rover_state == RoverStates.RESTING.value
-            and not self.callq.empty()
-        ):
-            print("handling call queue")
-            destination = self.callq.get()
-            if int(destination) != positions["JUNCTION"]:
-                direction = get_direction(self.rover_position,destination)
-                self.rover_destination = destination
-                self.rover_state = RoverStates.BLOCKED_TILL_UPDATE.value
-                return [(Msgpriority.GO,self.ROVER,direction)]
-            if destination == positions["STORE"]:
-                direction = get_direction(self.rover_position,positions["JUNCTION"])
-                self.rover_destination = destination
-                return [(Msgpriority.GO,self.ROVER,direction)]
-        else:
+        if self.rover_state != RoverStates.RESTING.value or self.callq.empty():
             return []
+        print("handling call queue")
+        destination = self.callq.get()
+        if int(destination) != positions["JUNCTION"]:
+            direction = get_direction(self.rover_position,destination)
+            self.rover_destination = destination
+            self.rover_state = RoverStates.BLOCKED_TILL_UPDATE.value
+            return [(Msgpriority.GO,self.ROVER,direction)]
+        if destination == positions["STORE"]:
+            direction = get_direction(self.rover_position,positions["JUNCTION"])
+            self.rover_destination = destination
+            return [(Msgpriority.GO,self.ROVER,direction)]
 
 
     def parse_message(self,msg:str):
