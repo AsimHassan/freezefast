@@ -79,7 +79,7 @@ async def HMI_loop():
                     # check which station has been highlighted
                     # Send Go message
                     if station_selected == 0:
-                        sg.popup("No station selected")
+                        sg.popup("No station selected",keep_on_top = True)
                     else:
                         sendGo(writer,station_selected,CALL_state)
                         CALL_state ='CALL'
