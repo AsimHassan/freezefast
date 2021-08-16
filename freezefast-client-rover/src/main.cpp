@@ -14,6 +14,7 @@
 #define FORWARD 8
 #define REVERSE 9
 
+
 #define WIFI_DISCONNECTED 0
 #define WIFI_CONNECTED 1
 #define WIFI_RECONNECTING 2
@@ -140,6 +141,11 @@ int state_machine_rover(){
         sendMessage("SLOWDOWN|ACK");
         current_rover_state = SLOWDOWN ;
     }
+    if (msgIn.compareTo("RESTING")==0){
+        Serial.println("Slowdown");
+        sendMessage("RESTING|ACK");
+        current_rover_state = RESTING ;
+    }
 
     if (msgIn.compareTo("STOP")==0){
         Serial.println("STOP");
@@ -195,6 +201,19 @@ int state_machine_rover(){
 
         }
 
+    case RESTING:
+        digitalWrite(BUZZER_PIN,LOW);
+        digitalWrite(FORWARD_PIN,LOW);
+        digitalWrite(REVERSE_PIN,LOW);
+        digitalWrite(SLOWDOWN_PIN,LOW);
+        break;
+
+    case EMERGENCY_STOP:
+        digitalWrite(BUZZER_PIN,HIGH);
+        digitalWrite(FORWARD_PIN,LOW);
+        digitalWrite(REVERSE_PIN,LOW);
+        digitalWrite(SLOWDOWN_PIN,LOW);
+        break;
 
 
     default:
