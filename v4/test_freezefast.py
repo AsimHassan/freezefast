@@ -97,6 +97,7 @@ o/P msg formta : [(Msgpriority.STOP,"ROVER|1","EMERGENCY|STOP")(Msgpriority.STOP
 """
 #TODO Test rover ACK
 #TODO Test rover state update
+#TODO Test junction state updates
 #TODO Test junction roverhere
 #TODO Test junction slowdonwn
 #TODO Test junction stop

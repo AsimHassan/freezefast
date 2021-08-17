@@ -60,6 +60,11 @@ class StationStates():
     FORWARD = 8
     REVERSE = 9
 
+class RotatingStates(Enum):
+    STRAIGHT = 2
+    CROSS = 3
+    INDETERMINATE = 10
+
 def get_direction(position, destination):
     if int(destination) - position > 0:
         return "FORWARD"
