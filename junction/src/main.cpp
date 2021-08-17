@@ -55,7 +55,8 @@ enum ROTATING_STATES{
     ROTATING,
     SEND_MESSAGE,
     DONE,
-    ERROR_ROTATION
+    ERROR_ROTATION,
+    INDETERMINATE
 };
 String rotating_state_arrray[]={
     "WAIT",
@@ -67,7 +68,8 @@ String rotating_state_arrray[]={
     "ROTATING",
     "SEND_MESSAGE",
     "DONE",
-    "ERROR_ROTATION"
+    "ERROR_ROTATION",
+    "INDETERMINATE"
 
 };
 
@@ -92,6 +94,7 @@ int soceketprev = SOCKET_DISCONNECTED;
 int junctionprev =IDLE;
 int rotateprev = ENTRY;
 
+uint8_t current_direction = STRAIGHT;
 uint8_t destination = STRAIGHT;
 
 unsigned long last_state_update = 0l;
@@ -104,14 +107,26 @@ unsigned long rover_cross2_timer_0 = 0l;
 
 void setup(){
 
-pinMode(SENSOR_A1_PIN,INPUT_PULLDOWN);
-pinMode(SENSOR_A2_PIN,INPUT_PULLDOWN);
-pinMode(IR_SENSOR_PIN,INPUT_PULLDOWN);
-pinMode(BUZZER_PIN,OUTPUT);
-pinMode(TURN_CCW_PIN,OUTPUT);
-pinMode(TURN_CW_PIN,OUTPUT);
+    pinMode(SENSOR_A1_PIN,INPUT_PULLDOWN);
+    pinMode(SENSOR_A2_PIN,INPUT_PULLDOWN);
+    pinMode(IR_SENSOR_PIN,INPUT_PULLDOWN);
+    pinMode(BUZZER_PIN,OUTPUT);
+    pinMode(TURN_CCW_PIN,OUTPUT);
+    pinMode(TURN_CW_PIN,OUTPUT);
 
     Serial.begin(115200);
+    int sensor_a1  = digitalRead(SENSOR_A1_PIN);
+    int sensor_a2  = digitalRead(SENSOR_A2_PIN);
+
+    if ( sensor_a1 == HIGH && sensor_a2 == HIGH ){
+        current_position = STRAIGHT;
+    }
+    else if ( (sensor_a1 == HIGH && sensor_a2 == LOW) || (sensor_a1 ==LOW && sensor_a2 ==HIGH) ){
+        current_position = CROSS;
+    }
+    else{
+        current_position = INDETERMINATE;
+    }
 }
 
 void loop(){
@@ -202,6 +217,7 @@ int junctionStateMachine(){
             //Serial.print(".");
             delay(10);
             if(ROTATING_STATE == DONE){
+                current_direction = destination;
                 ROTATING_STATE = WAIT; 
                 JUNCTION_STATE = ROVER_READY_TO_LEAVE;
                 Message = String("");
@@ -419,7 +435,7 @@ int sendMessage(String Msg){
     return 0;
 }
 int sendState(int state){
-    espclient.printf("JUNCTION|%d|STATE:%d.",ID,state);
+    espclient.printf("JUNCTION|%d|DIRECTION:%d|STATE:%d.",ID,current_direction,state);
     delay(10);
     return 0;
 }
