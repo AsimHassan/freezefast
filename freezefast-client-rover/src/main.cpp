@@ -101,18 +101,17 @@ int state_machine_rover(){
     
     // Check if sensors read anythingA
 
-    int sensor_state = (digitalRead(OBSTACLE_SENSOR_B_PIN)&&
-                        digitalRead(LIMIT_SWITCH_B_PIN)&&
-                        digitalRead(OBSTACLE_SENSOR_F_PIN)&&
-                        digitalRead(LIMIT_SWITCH_F_PIN));
+    int limit_switch = (digitalRead(LIMIT_SWITCH_B_PIN) || digitalRead(LIMIT_SWITCH_F_PIN));  // equals 1 if any one i high, 0 if both low
 
-    if (sensor_state == 0){
+    int sensor_state = !(digitalRead(OBSTACLE_SENSOR_B_PIN)&&digitalRead(OBSTACLE_SENSOR_F_PIN)); // equal to 1  if 1 one is low, 0 if both are high
+
+    if (sensor_state == 1 || limit_switch ==1){  // if any sensor turns high go to obstacle state
         if (current_rover_state != OBSTACLE){ 
             previous_rover_state = current_rover_state;
             current_rover_state = OBSTACLE;
             flag_obstacle = true;
         }
-    }else if(sensor_state ==1 && flag_obstacle == true  ){
+    }else if((sensor_state ==0) && (flag_obstacle == true) && (limit_switch == 0)){  // when obstacle removed start counter
         flag_obstacle = false;
         obstacle_removed_timer0 = millis();
     }
