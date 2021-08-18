@@ -11,11 +11,11 @@
 #define PORT 1234
 /*****************Pins**********************/
 
-#define RED_SWITCH_PIN 2
-#define GREEN_SWITCH_PIN 4
-#define RED_LED_PIN 18
-#define GREEN_LED_PIN 19
-#define IR_RECEIVER_PIN 15
+#define RED_SWITCH_PIN 19
+#define GREEN_SWITCH_PIN 21
+#define RED_LED_PIN 24
+#define GREEN_LED_PIN 25
+#define IR_RECEIVER_PIN 18
 
 /**********************STATION PARAMETERS***********/
 #define STATION_ID 1

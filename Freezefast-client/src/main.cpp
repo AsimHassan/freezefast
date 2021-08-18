@@ -4,19 +4,43 @@
 
 
 enum STATION_STATES {
-STOPPED = 0,
-RESET  = 1,
-CALL = 2,
-WAITFORCALLACK = 3,
-CALLED = 4,
-ROVER_CROSSED = 5,
-ROVER_CROSSED_AGAIN = 6,
-ROVER_REACHED = 7,
-WAITING_FOR_GO = 8,
-GONE = 9,
-EMERGENCY = 10,
-IR_HIGH = 11
+STOPPED,
+RESET,
+CALL,
+WAITFORCALLACK,
+CALLED,
+ROVER_CROSSED,
+ROVER_CROSSED_AGAIN ,
+ROVER_REACHED,
+GO_PRESSED,
+GONE,
+EMERGENCY,
+IR_LOW,
+ROVERCROSS_INTER,
+ROVER_LEAVING,
+ROVER_LEAVING_INTER,
+ROVER_LEAVING_2
 };
+
+String STATE_ARRAY[] ={
+"STOPPED",
+"RESET",
+"CALL",
+"WAITFORCALLACK",
+"CALLED",
+"ROVER_CROSSED",
+"ROVER_CROSSED_AGAIN" ,
+"ROVER_REACHED",
+"GO_PRESSED",
+"GONE",
+"EMERGENCY",
+"IR_LOW",
+"ROVERCROSS_INTER",
+"ROVER_LEAVING",
+"ROVER_LEAVING_INTER",
+"ROVER_LEAVING_2"
+};
+
 #define WIFI_DISCONNECTED 0
 #define WIFI_CONNECTED 1
 #define WIFI_RECONNECTING 2
@@ -27,9 +51,11 @@ IR_HIGH = 11
 
 int previous_state_station = RESET;
 int current_state_station = RESET;
+uint8_t prev_state_for_emergency = RESET;
 int wifi_current_state = WIFI_DISCONNECTED;
 int current_socket_state=SOCKET_DISCONNECTED;
 
+bool rover_owner = true;
 bool green_led_status =LOW;
 bool emergency_ack_flag = false;
 unsigned long server_ack_timer_0;
@@ -40,6 +66,7 @@ unsigned long reconnection_time_0;
 unsigned long emergency_timer_0;
 unsigned long last_state_update = 0;
 unsigned long rovercrossing_0;
+unsigned long roverhere_0;
 WiFiClient espclient;
 
 
@@ -62,7 +89,7 @@ void setup(){
     digitalWrite(GREEN_LED_PIN,LOW);
     pinMode(GREEN_SWITCH_PIN,INPUT_PULLDOWN);
     pinMode(RED_SWITCH_PIN,INPUT_PULLDOWN);
-    pinMode(IR_RECEIVER_PIN,INPUT_PULLDOWN);
+    pinMode(IR_RECEIVER_PIN,INPUT_PULLUP);
 
     Serial.begin(115200);
     WiFi.begin(WIFI_SSID,WIFI_PSD);
@@ -81,7 +108,7 @@ void loop(){
         last_state_update = millis();
     }
     if(wifiprev!=wifi_current_state||soceketprev!=current_socket_state||clientprev!=current_state_station){
-        Serial.printf("wifi:%d|socket:%d|client:%d \n",wifi_current_state,current_socket_state,current_state_station);
+        Serial.printf("wifi:%d|socket:%d|STATION_STATE:%s \n",wifi_current_state,current_socket_state,STATE_ARRAY[current_state_station].c_str());
         wifiprev = wifi_current_state;
         soceketprev = current_socket_state;
         clientprev = current_state_station;
@@ -111,7 +138,7 @@ int station_state_machine(){
     if(redswitch==HIGH){
         previous_state_station = current_state_station;
         current_state_station = EMERGENCY;
-        }
+    }
 
 
     switch (current_state_station){
@@ -119,9 +146,9 @@ int station_state_machine(){
             digitalWrite(RED_LED_PIN,LOW);
             digitalWrite(GREEN_LED_PIN,LOW);
 
-           if(roverIR == HIGH){
+           if(roverIR == LOW){
                 previous_state_station = current_state_station;
-                current_state_station = ROVER_CROSSED;
+                current_state_station = IR_LOW;
                 return 0;
             }
             if(greenswitch == HIGH){
@@ -160,112 +187,110 @@ int station_state_machine(){
                 digitalWrite(GREEN_LED_PIN,green_led_status);
                 green_led_time_last_toggle = millis();
             }
-            if(roverIR == HIGH){
+            if(roverIR == LOW){
                 previous_state_station = current_state_station;
-                current_state_station = IR_HIGH; 
+                current_state_station = IR_LOW; 
                 return current_state_station;
             }
 
             break;
         }
-        case IR_HIGH:
-                current_state_station = ROVER_CROSSED;
+        case IR_LOW:
                 sendMessage("ROVERCROSSED");
+                current_state_station = ROVER_CROSSED;
             break;
 
-        case ROVER_CROSSED:{
-            //TODO
-            if(msgIn.compareTo("CROSS|NO")==0){
-
+        case ROVER_CROSSED:
+            if (msgIn.compareTo("CROSS|NO") == 0){
+                rover_owner = false;
                 current_state_station = previous_state_station;
-                Serial.print("unfortunatly not for me");
+                break;
+
             }
-            if(msgIn.compareTo("CROSS|YES")==0){
-                previous_state_station = current_state_station;
-                current_state_station = ROVER_CROSSED_AGAIN;
-                rovercrossing_0 = millis();
-                Serial.println("all mine");
-                delay(200);
+            if (msgIn.compareTo("CROSS|YES") == 0){
+                rover_owner = true;
             }
+            
+            if (roverIR == HIGH){
+                current_state_station = ROVERCROSS_INTER;
+            }
+
             break;
-        }
- // Todo
-// Add a state to check if its crossing the second time
-// 1 states cross one and cross two
-// cross one slowsdown
-// cross two stops
-// check crossingeven if the station has not called --> to update rover locations
 
-// Direction of travel can be decided by giving everyone a number from the number line and using that
 
+        case ROVERCROSS_INTER:
+            if (roverIR == LOW){
+                sendMessage("STOP");
+                current_state_station = ROVER_CROSSED_AGAIN;
+                roverhere_0 = millis();
+            }
+            if (msgIn.compareTo("CROSS|NO") == 0){
+                rover_owner = false;
+                current_state_station = previous_state_station;
+
+                break;
+            }
+
+
+            break;
 
         case ROVER_CROSSED_AGAIN:
-            if (millis()-rovercrossing_0 > 500){
-                if(roverIR == HIGH){
-                    sendMessage("STOP");
-                    if(msgIn.compareTo("STOP|ACK") == 0){
-                        previous_state_station = current_state_station;
-                        current_state_station = ROVER_REACHED;
-                        Serial.println("moving to reached state");
-                   }
-
-                }
-
-
-            }
-            break;
-        case ROVER_REACHED:{
-            green_led_status = HIGH;
-            if (roverIR != HIGH){
-                Serial.println("why isnt the rover here ");
-            }
-            digitalWrite(GREEN_LED_PIN,green_led_status);
-            if(greenswitch == HIGH){
-                sendMessage("GO");
-                previous_state_station = current_state_station;
-                current_state_station = WAITING_FOR_GO;
-                server_ack_timer_0 = millis();
-            }
-
-            break;
-        }
-
-
-        case WAITING_FOR_GO:{
-            server_ack_timer_now = millis();
-            if(server_ack_timer_now - server_ack_timer_0 > 5000){
-                previous_state_station = current_state_station;
+            if (roverIR == LOW && (millis() - roverhere_0 > 500)){
                 current_state_station = ROVER_REACHED;
-                return current_state_station;
+            }
+            break;
+        
+        case ROVER_REACHED:
+            if (greenswitch == HIGH){
+                current_state_station = GO_PRESSED;
+                
+                sendMessage("GO");
+            } 
+            break;
+
+        case GO_PRESSED:
+            if (msgIn.compareTo("GO|ACK") == 0){
+                current_state_station = ROVER_LEAVING;
+            }
+            break;
+        
+        case ROVER_LEAVING:
+            if (roverIR  == HIGH){
+                current_state_station = ROVER_LEAVING_INTER;
+            }
+            break;
+        
+        case ROVER_LEAVING_INTER:
+            if (roverIR == LOW){
+                current_state_station = ROVER_LEAVING_2;
+                roverhere_0 = millis();
+            
             }
 
-            if(msgIn.compareTo("GO|ACK")){
-                previous_state_station = current_state_station;
+            break;
+        
+        case ROVER_LEAVING_2:
+            if (roverIR == HIGH && (millis() - roverhere_0 > 500)){
                 current_state_station = GONE;
             }
-
             break;
-        }
-        case GONE:{
-            green_led_status = LOW;
-            digitalWrite(GREEN_LED_PIN,green_led_status);
-            previous_state_station = current_state_station;
-            current_state_station =  RESET;
-            break;
-        }
 
+
+        case GONE:
+            current_state_station = RESET;
+            break;
+         
+        
+        
 
         case EMERGENCY:{
-            // TODO
-            // send message to rover
-            //
+            if (redswitch == LOW){
             delay(60);
-            if (digitalRead(RED_SWITCH_PIN) == LOW){
             sendMessage("EMERGENCY");
             emergency_timer_0 = millis();
             current_state_station = STOPPED;
-            }
             break;
+            }
         }
         case STOPPED:{
             if(msgIn.compareTo("EMERGENCY|ACK")==0){
