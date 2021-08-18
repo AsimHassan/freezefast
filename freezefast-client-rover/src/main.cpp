@@ -182,12 +182,12 @@ int state_machine_rover(){
         digitalWrite(SLOWDOWN_PIN,LOW);
         digitalWrite(FORWARD_PIN, LOW);
         Serial.println("BUZZER");
+        break;
     case  SLOWDOWN:
         digitalWrite(REVERSE_PIN, LOW);
         digitalWrite(BUZZER_PIN,LOW);
         digitalWrite(SLOWDOWN_PIN,HIGH);
         digitalWrite(FORWARD_PIN, LOW);
-        /* code */
         break;
     
     case OBSTACLE:
@@ -199,6 +199,7 @@ int state_machine_rover(){
             current_rover_state = previous_rover_state;
 
         }
+        break;
 
     case RESTING:
         digitalWrite(BUZZER_PIN,LOW);
@@ -219,158 +220,6 @@ int state_machine_rover(){
         break;
     }
 
-    
-
-    
-//     switch (current_rover_state)
-//     {
-        
-//         case RESET:
-//             previous_rover_state = current_rover_state;
-//             current_rover_state = RESTING;
-//             break;
-
-
-//         case RESTING:
-//         case MOVING:
-//             digitalWrite(SLOWDOWN_PIN,LOW);
-//             Serial.println("Here");
-//             Serial.println(msgIn);
-//             if(msgIn.compareTo("ROVER|FORWARD")==0){
-//                 sendMessage("FORWARD|ACK");
-//                 digitalWrite(REVERSE_PIN,LOW);
-//                 digitalWrite(FORWARD_PIN,HIGH);
-//             }
-//             if(msgIn.compareTo("ROVER|REVERSE")==0){
-//                 sendMessage("REVERSE|ACK");
-//                 digitalWrite(FORWARD_PIN,LOW);
-//                 digitalWrite(REVERSE_PIN,HIGH);
-//             } 
-//             if(msgIn.compareTo("ROVER|SLOWDOWN")==0){
-//                 sendMessage("SLOWDOWN|ACK");
-//                 previous_rover_state = current_rover_state;
-//                 current_rover_state=SLOWDOWN;
-
-//             }
-//             break;
-
-//         case SLOWDOWN:
-//             // Slow down the rover
-//             digitalWrite(SLOWDOWN_PIN,HIGH);
-//             // Check for message stop the rover and move to next state
-//             if (msgIn.compareTo("ROVER|STOP")==0){
-//                 digitalWrite(FORWARD_PIN,LOW);
-//                 digitalWrite(REVERSE_PIN,LOW);
-//                 digitalWrite(SLOWDOWN_PIN,LOW);
-
-//                 previous_rover_state = current_rover_state;
-//                 current_rover_state = STOPPED;
-//                 sendMessage("ROVER|STOPPED");
-//                 wait_timer_0 = millis();
-
-//             }
-            
-//             break;
-
-
-//         case STOPPED:
-//             if(msgIn.compareTo("ROVER|START")==0){
-//                 sendMessage("START|ACK");
-//                 previous_rover_state = current_rover_state;
-//                 current_socket_state = MOVING;
-//                 break;
-//             }
-//             if(msgIn.compareTo("ROVER|FORWARD")==0){
-//                 sendMessage("FORWARD|ACK");
-//                 digitalWrite(REVERSE_PIN,LOW);
-//                 digitalWrite(FORWARD_PIN,HIGH);
-
-//                 previous_rover_state = current_rover_state;
-//                 current_socket_state = MOVING;
-//             }
-//             if(msgIn.compareTo("ROVER|REVERSE")==0){
-//                 sendMessage("REVERSE|ACK");
-//                 digitalWrite(FORWARD_PIN,LOW);
-//                 digitalWrite(REVERSE_PIN,HIGH);
-//                 previous_rover_state = current_rover_state;
-//                 current_socket_state = MOVING;
-//             }
-            
-//             if( millis() - wait_timer_0 > 30000){
-//                 sendMessage("ROVER|BUZZING");
-//                 previous_rover_state = current_rover_state;
-//                 current_rover_state = BUZZER;
-
-//             }
-//             break;
-
-//         case BUZZER:
-//             digitalWrite(BUZZER_PIN,HIGH);
-//             if(msgIn.compareTo("ROVER|START")==0){
-//                 sendMessage("START|ACK");
-//                 digitalWrite(BUZZER_PIN,LOW);
-//                 previous_rover_state = current_rover_state;
-//                 current_socket_state = MOVING;
-//                 break;
-//             }
-//             if(msgIn.compareTo("ROVER|FORWARD")==0){
-//                 sendMessage("FORWARD|ACK");
-//                 digitalWrite(REVERSE_PIN,LOW);
-//                 digitalWrite(FORWARD_PIN,HIGH);
-
-//                 previous_rover_state = current_rover_state;
-//                 current_socket_state = MOVING;
-//             }
-//             if(msgIn.compareTo("ROVER|REVERSE")==0){
-//                 sendMessage("REVERSE|ACK");
-//                 digitalWrite(FORWARD_PIN,LOW);
-//                 digitalWrite(REVERSE_PIN,HIGH);
-//                 previous_rover_state = current_rover_state;
-//                 current_socket_state = MOVING;
-//             }
-//             //if(msg == go )
-//             //digitalWrtie(BUZZER_PIN,LOW)
-//             //previous_rover_state = current_rover_state;
-//             //current_rover_state = MOVING; 
-
-//             break;
-
-
-//         case EMERGENCY_STOP:
-//             digitalWrite(FORWARD_PIN,LOW);
-//             digitalWrite(REVERSE_PIN,LOW);
-//             if(millis()-last_emergency_update > 1000){
-
-//                 sendMessage("EMERGENCY|STOPPED");
-//                 last_emergency_update = millis(); 
-//             }
-
-//             break;
-        
-//         case OBSTACLE:
-//             // check if one second passed and check the pins if none are engaged go back to previous state
-            
-//             digitalWrite(FORWARD_PIN,LOW);
-//             digitalWrite(REVERSE_PIN,LOW);
-//             digitalWrite(BUZZER_PIN,HIGH);
-//             if(millis()-last_obstacle_msg_send > 1000){
-
-//                 sendMessage("OBSTACLE|STOPPED");
-//                 last_obstacle_msg_send = millis(); 
-//             }
-//             if (1){
-
-
-//             }
-//             break;
-
-//         default:
-//             Serial.println("You should never get here in normal operation");
-//             break;
-//   }
-
-
-// TODO send back ack
   return current_rover_state;
 }
 
