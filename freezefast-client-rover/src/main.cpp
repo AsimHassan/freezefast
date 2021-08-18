@@ -197,6 +197,7 @@ int state_machine_rover(){
         digitalWrite(FORWARD_PIN, LOW); 
         if (millis() - obstacle_removed_timer0 > 3000 && flag_obstacle == false){
             current_rover_state = previous_rover_state;
+        break;
 
         }
         break;

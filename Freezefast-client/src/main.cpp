@@ -2,19 +2,21 @@
 #include <WiFi.h>
 #include <configs.h>
 
-#define STOPPED 0
-#define RESET  1
-#define CALL 2
-#define WAITFORCALLACK 3
-#define CALLED 4
-#define ROVER_CROSSED 5
-#define ROVER_CROSSED_AGAIN 6
-#define ROVER_REACHED 7
-#define WAITING_FOR_GO 8
-#define GONE 9
-#define EMERGENCY 10
-#define IR_HIGH 11
 
+enum STATION_STATES {
+STOPPED = 0,
+RESET  = 1,
+CALL = 2,
+WAITFORCALLACK = 3,
+CALLED = 4,
+ROVER_CROSSED = 5,
+ROVER_CROSSED_AGAIN = 6,
+ROVER_REACHED = 7,
+WAITING_FOR_GO = 8,
+GONE = 9,
+EMERGENCY = 10,
+IR_HIGH = 11
+};
 #define WIFI_DISCONNECTED 0
 #define WIFI_CONNECTED 1
 #define WIFI_RECONNECTING 2
@@ -45,6 +47,7 @@ int wifiprev = WIFI_DISCONNECTED;
 int soceketprev = SOCKET_DISCONNECTED;
 int clientprev =RESET;
 
+int socket_state_machine();
 int wifi_state_machine();
 int station_state_machine();
 String getMessage();
@@ -357,8 +360,6 @@ int socket_state_machine(){
 
 String getMessage(){
     String buffer = "";
-    //Serial.println("here in msg : ");
-    ///delay(500);
     if(espclient.available()){
         buffer = espclient.readStringUntil('.');
     }
@@ -371,6 +372,7 @@ int sendMessage(String Msg){
     delay(10);
     return 0;
 }
+
 int sendState(int state){
     espclient.printf("STATION|%d|STATE:%d.",STATION_ID,state);
     delay(10);
