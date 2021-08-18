@@ -3,7 +3,7 @@
 #include <configs.h>
 
 
-enum ROVER_STATES {
+enum STATION_STATES {
 STOPPED = 0,
 RESET  = 1,
 CALL = 2,
@@ -47,6 +47,7 @@ int wifiprev = WIFI_DISCONNECTED;
 int soceketprev = SOCKET_DISCONNECTED;
 int clientprev =RESET;
 
+int socket_state_machine();
 int wifi_state_machine();
 int station_state_machine();
 String getMessage();
@@ -359,8 +360,6 @@ int socket_state_machine(){
 
 String getMessage(){
     String buffer = "";
-    //Serial.println("here in msg : ");
-    ///delay(500);
     if(espclient.available()){
         buffer = espclient.readStringUntil('.');
     }
@@ -373,6 +372,7 @@ int sendMessage(String Msg){
     delay(10);
     return 0;
 }
+
 int sendState(int state){
     espclient.printf("STATION|%d|STATE:%d.",STATION_ID,state);
     delay(10);
