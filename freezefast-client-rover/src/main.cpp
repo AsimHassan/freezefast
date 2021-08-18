@@ -183,6 +183,7 @@ int state_machine_rover(){
         digitalWrite(SLOWDOWN_PIN,LOW);
         digitalWrite(FORWARD_PIN, LOW);
         Serial.println("BUZZER");
+        break;
     case  SLOWDOWN:
         digitalWrite(REVERSE_PIN, LOW);
         digitalWrite(BUZZER_PIN,LOW);
@@ -198,6 +199,7 @@ int state_machine_rover(){
         digitalWrite(FORWARD_PIN, LOW); 
         if (millis() - obstacle_removed_timer0 > 3000 && flag_obstacle == false){
             current_rover_state = previous_rover_state;
+        break;
 
         }
 
