@@ -46,6 +46,7 @@ int soceketprev = SOCKET_DISCONNECTED;
 int clientprev =RESET;
 
 int wifi_state_machine();
+int socket_state_machine();
 int station_state_machine();
 String getMessage();
 int sendMessage(String);
