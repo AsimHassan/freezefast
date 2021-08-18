@@ -89,7 +89,7 @@ void setup(){
     digitalWrite(GREEN_LED_PIN,LOW);
     pinMode(GREEN_SWITCH_PIN,INPUT_PULLDOWN);
     pinMode(RED_SWITCH_PIN,INPUT_PULLDOWN);
-    pinMode(IR_RECEIVER_PIN,INPUT_PULLUP);
+    pinMode(IR_RECEIVER_PIN,INPUT_PULLDOWN);
 
     Serial.begin(115200);
     WiFi.begin(WIFI_SSID,WIFI_PSD);
