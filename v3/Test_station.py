@@ -1,7 +1,9 @@
 import asyncio
 import rover
 
-ip = '127.0.0.1'
+callFlag = False
+
+ip = '192.168.3.64'
 portno = 1234
 async def Test_station(reader:asyncio.StreamReader,writer:asyncio.StreamWriter):
     data = await reader.read(100)
@@ -15,13 +17,20 @@ async def Test_station(reader:asyncio.StreamReader,writer:asyncio.StreamWriter):
             print(message)
             splitmsg = message.split('|')
             if 'CALL' in splitmsg:
-                writer.write('CALL|ACK'.encode())
+                writer.write('CALL|ACK.'.encode())
+                callFlag = True
             if 'GO' in splitmsg:
-                writer.write('GO|ACK'.encode())
+                writer.write('GO|ACK.'.encode())
+                callFlag = False
             if 'ROVERCROSSED' in splitmsg:
-                writer.write('CROSS|YES'.encode())
+                if callFlag == True:
+                    writer.write('CROSS|YES.'.encode())
+                else:
+                    writer.write('CROSS|NO.'.encode())
             if 'STOP' in splitmsg:
-                writer.write('STOP|ACK'.encode())
+                writer.write('STOP|ACK.'.encode())
+            if 'EMERGENCY' in splitmsg:
+                writer.write('EMERGENCY|ACK.'.encode())
 
             await writer.drain()
 
