@@ -152,6 +152,12 @@ int state_machine_rover(){
         current_rover_state = STOPPED;
         wait_timer_0 = millis();
     }
+    if (msgIn.compareTo("EMERGENCY")==0){
+        Serial.println("E-STOP");
+        sendMessage("STOP|ACK");
+        current_rover_state = EMERGENCY_STOP;
+        wait_timer_0 = millis();
+    }
 
     switch (current_rover_state)
     {
