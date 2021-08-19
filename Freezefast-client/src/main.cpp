@@ -241,6 +241,7 @@ int station_state_machine(){
             break;
         
         case ROVER_REACHED:
+            digitalWrite(GREEN_LED_PIN,HIGH);
             if (greenswitch == HIGH){
                 current_state_station = GO_PRESSED;
                 
@@ -251,6 +252,7 @@ int station_state_machine(){
         case GO_PRESSED:
             if (msgIn.compareTo("GO|ACK") == 0){
                 current_state_station = ROVER_LEAVING;
+                digitalWrite(GREEN_LED_PIN,LOW);
             }
             break;
         
